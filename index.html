@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOCALHOST.NP — Kathmandu Story Engine</title>
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2307080b'/%3E%3Crect x='1' y='1' width='30' height='30' rx='7' fill='none' stroke='%2338bdf8' stroke-opacity='0.35' stroke-width='1.5'/%3E%3Cpath d='M8.5 11L4.5 16L8.5 21' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M23.5 11L27.5 16L23.5 21' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16 6.5L20.5 16.5L18.2 24.5H13.8L11.5 16.5L16 6.5Z' fill='%2338bdf8' fill-opacity='0.22' stroke='%2338bdf8' stroke-width='1.8' stroke-linejoin='round'/%3E%3Cline x1='16' y1='6.5' x2='16' y2='14.5' stroke='%2338bdf8' stroke-width='1.6' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16.5' r='1.4' fill='%2338bdf8'/%3E%3C/svg%3E"
+  />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    :root {
+      --bg-obsidian: #07080b;
+      --glass-bg: rgba(15, 18, 25, 0.78);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-specular: rgba(255, 255, 255, 0.06);
+
+      /* Default Theme: Cyan */
+      --accent: #38bdf8;
+      --accent-rgb: 56, 189, 248;
+      --accent-glow: rgba(56, 189, 248, 0.28);
+      --accent-soft: rgba(56, 189, 248, 0.12);
+    }
+
+    [data-accent="amber"] {
+      --accent: #f59e0b;
+      --accent-rgb: 245, 158, 11;
+      --accent-glow: rgba(245, 158, 11, 0.28);
+      --accent-soft: rgba(245, 158, 11, 0.12);
+    }
+
+    [data-accent="emerald"] {
+      --accent: #10b981;
+      --accent-rgb: 16, 185, 129;
+      --accent-glow: rgba(16, 185, 129, 0.28);
+      --accent-soft: rgba(16, 185, 129, 0.12);
+    }
+
+    [data-accent="rose"] {
+      --accent: #f43f5e;
+      --accent-rgb: 244, 63, 94;
+      --accent-glow: rgba(244, 63, 94, 0.28);
+      --accent-soft: rgba(244, 63, 94, 0.12);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      max-width: 100%;
+      overflow-x: hidden;
+      background-color: var(--bg-obsidian);
+      color: #f1f5f9;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image:
+        radial-gradient(circle at 18% 0%, rgba(var(--accent-rgb), 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 85% 95%, rgba(var(--accent-rgb), 0.05) 0%, transparent 42%);
+      transition: background-image 0.45s ease;
+    }
+
+    /* Precision Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(var(--accent-rgb), 0.48);
+    }
+    .glass-nav {
+      background: rgba(7, 8, 11, 0.8);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border-bottom: 1px solid var(--glass-border);
+      box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.75);
+    }
+
+    .glass-surface {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      border: 1px solid var(--glass-border);
+      box-shadow:
+        0 20px 44px -18px rgba(0, 0, 0, 0.82),
+        inset 0 1px 0 var(--glass-specular);
+      transition:
+        transform 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.24s ease,
+        box-shadow 0.26s ease;
+    }
+
+    .prompt-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(var(--accent-rgb), 0.32);
+      box-shadow:
+        0 24px 48px -18px rgba(0, 0, 0, 0.9),
+        0 0 24px -8px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    /* Neumorphic Recessed Wells */
+    .neu-well {
+      background: rgba(9, 11, 16, 0.84);
+      border: 1px solid rgba(255, 255, 255, 0.055);
+      box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.65),
+        0 1px 0 rgba(255, 255, 255, 0.04);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .neu-well:focus-within {
+      border-color: rgba(var(--accent-rgb), 0.42);
+      box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.65),
+        0 0 0 2px var(--accent-soft);
+    }
+
+    .pill-btn {
+      border-radius: 9999px;
+      background: rgba(20, 24, 34, 0.86);
+      border: 1px solid var(--glass-border);
+      box-shadow:
+        0 4px 12px -4px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 var(--glass-specular);
+      color: #cbd5e1;
+      transition:
+        transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+      user-select: none;
+    }
+
+    .pill-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(28, 34, 48, 0.95);
+      border-color: rgba(255, 255, 255, 0.16);
+      color: #f8fafc;
+      box-shadow:
+        0 6px 16px -4px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .pill-btn:active {
+      transform: scale(0.97);
+    }
+
+    .pill-btn.is-active {
+      background: var(--accent-soft);
+      border-color: rgba(var(--accent-rgb), 0.42);
+      color: var(--accent);
+      box-shadow:
+        0 0 18px -4px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    /* Accent Action Capsule */
+    .pill-accent {
+      border-radius: 9999px;
+      background: var(--accent);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow:
+        0 6px 20px -5px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      color: #05070a;
+      font-weight: 600;
+      transition:
+        transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.2s ease,
+        box-shadow 0.2s ease;
+      user-select: none;
+    }
+
+    .pill-accent:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+      box-shadow:
+        0 10px 24px -4px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .pill-accent:active {
+      transform: scale(0.97);
+    }
+
+    /* Dynamic Accent Utilities */
+    .accent-text {
+      color: var(--accent);
+    }
+    .accent-bg-soft {
+      background-color: var(--accent-soft);
+    }
+    .accent-border {
+      border-color: rgba(var(--accent-rgb), 0.35);
+    }
+    .accent-dot {
+      background-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    @keyframes viewFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .view-enter {
+      animation: viewFadeIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes toastOut {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+      }
+    }
+
+    .toast-in {
+      animation: toastIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .toast-out {
+      animation: toastOut 0.2s ease forwards;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-white/15 selection:text-white">
+
+  <!-- 60FPS Monsoon Rain HTML5 Canvas Backdrop -->
+  <canvas
+    id="rainCanvas"
+    class="fixed inset-0 w-full h-full pointer-events-none z-0 transition-opacity duration-500"
+  ></canvas>
+
+
+  <header class="glass-nav sticky top-0 z-30 w-full">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
+      
+      <!-- Brand Identity Mark -->
+      <button
+        id="brandHomeBtn"
+        type="button"
+        class="flex items-center gap-2.5 text-left group focus:outline-none shrink-0"
+        title="Return to Prompt Archive"
+      >
+        <div class="w-8 h-8 rounded-full accent-bg-soft border accent-border flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+          <!-- Crisp Inline SVG Terminal-Bracket + Fountain-Nib Mark -->
+          <svg
+            class="w-4 h-4 accent-text"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8.5 11L4.5 16L8.5 21"
+              stroke="currentColor"
+              stroke-opacity="0.7"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M23.5 11L27.5 16L23.5 21"
+              stroke="currentColor"
+              stroke-opacity="0.7"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M16 6.5L20.5 16.5L18.2 24.5H13.8L11.5 16.5L16 6.5Z"
+              fill="currentColor"
+              fill-opacity="0.2"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+            <line
+              x1="16"
+              y1="6.5"
+              x2="16"
+              y2="14.5"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+            <circle cx="16" cy="16.5" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
+        <span class="font-mono text-sm sm:text-[15px] font-semibold tracking-wider text-slate-100">
+          LOCALHOST<span class="accent-text">.NP</span>
+        </span>
+      </button>
+
+      <!-- Global Utility Capsules -->
+      <div class="flex items-center gap-2 min-w-0">
+        <!-- Random Prompt Trigger -->
+        <button
+          id="shuffleBtn"
+          type="button"
+          class="pill-btn px-3 py-1.5 text-[11px] font-mono tracking-wider uppercase flex items-center gap-1.5 shrink-0"
+          title="Open random prompt in studio"
+        >
+          <svg class="w-3.5 h-3.5 accent-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+            <line x1="4" y1="4" x2="9" y2="9"></line>
+          </svg>
+          <span class="hidden sm:inline">RANDOM</span>
+        </button>
+
+        <!-- Rain Simulation Toggle Pill -->
+        <button
+          id="rainToggleBtn"
+          type="button"
+          class="pill-btn px-3 py-1.5 text-[11px] font-mono tracking-wider uppercase flex items-center gap-1.5 shrink-0"
+          title="Toggle Kathmandu monsoon rain backdrop"
+        >
+          <span id="rainStatusDot" class="w-1.5 h-1.5 rounded-full accent-dot"></span>
+          <span>RAIN</span>
+        </button>
+
+        <!-- Dynamic Accent Color Cycler Pill -->
+        <button
+          id="themeCycleBtn"
+          type="button"
+          class="pill-btn px-3 py-1.5 text-[11px] font-mono tracking-wider uppercase flex items-center gap-2 shrink-0"
+          title="Cycle studio accent color"
+        >
+          <span id="themeSwatchDot" class="w-2.5 h-2.5 rounded-full accent-dot"></span>
+          <span id="themeLabel">CYAN</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+
+  <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+
+    <div id="archiveView" class="view-enter space-y-6">
+      
+      <!-- Streamlined Filter & Live Search Toolbar -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+        
+        <!-- Capsule Filter Pills -->
+        <div id="filterBar" class="flex flex-wrap items-center gap-2 min-w-0">
+          <!-- Injected dynamically -->
+        </div>
+
+        <!-- Live Search Pill + Telemetry Counter -->
+        <div class="flex items-center gap-2.5 w-full lg:w-auto">
+          <div class="neu-well rounded-full px-3.5 py-1.5 flex items-center gap-2 flex-1 lg:w-64 min-w-0">
+            <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              id="searchInput"
+              type="text"
+              placeholder="Filter prompts..."
+              aria-label="Filter prompts"
+              class="bg-transparent text-xs text-slate-100 placeholder-slate-500 w-full min-w-0 focus:outline-none"
+            />
+            <button
+              id="clearSearchBtn"
+              type="button"
+              aria-label="Clear search"
+              class="hidden text-slate-400 hover:text-slate-100 transition-colors shrink-0"
+            >
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <kbd id="searchShortcutHint" class="hidden sm:inline-block font-mono text-[10px] text-slate-500 px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] shrink-0">
+              /
+            </kbd>
+          </div>
+
+          <span
+            id="archiveCountPill"
+            class="font-mono text-[11px] text-slate-400 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06] shrink-0"
+          >
+            10 / 10
+          </span>
+        </div>
+      </div>
+
+      <!-- Responsive 2-Column Bento Grid -->
+      <div id="promptGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Cards rendered dynamically -->
+      </div>
+
+      <!-- Minimalist Empty Search State -->
+      <div
+        id="emptyState"
+        class="hidden glass-surface rounded-3xl py-12 px-6 text-center max-w-md mx-auto"
+      >
+        <p class="font-mono text-xs uppercase tracking-widest text-slate-400 mb-3">
+          NO MATCHING PROMPTS
+        </p>
+        <button
+          id="resetFilterBtn"
+          type="button"
+          class="pill-accent px-4 py-2 text-xs font-mono uppercase tracking-wider"
+        >
+          RESET VIEW
+        </button>
+      </div>
+    </div>
+
+
+    <div id="studioView" class="hidden view-enter space-y-4">
+      
+      <!-- Top Studio Command Strip -->
+      <div class="glass-surface rounded-full px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+        
+        <!-- Left Navigation Controls -->
+        <div class="flex items-center gap-1.5">
+          <button
+            id="backToArchiveBtn"
+            type="button"
+            class="pill-btn px-3.5 py-1.5 text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
+            title="Back to Archive (Esc)"
+          >
+            <span>← ARCHIVE</span>
+          </button>
+
+          <button
+            id="prevPromptBtn"
+            type="button"
+            class="pill-btn px-3 py-1.5 text-xs font-mono uppercase tracking-wider"
+            title="Previous Prompt"
+          >
+            ← PREV
+          </button>
+
+          <button
+            id="nextPromptBtn"
+            type="button"
+            class="pill-btn px-3 py-1.5 text-xs font-mono uppercase tracking-wider"
+            title="Next Prompt"
+          >
+            NEXT →
+          </button>
+        </div>
+
+        <!-- Right Studio Modes & Telemetry Pills -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <!-- Toggle Prompt Brief (Zen Mode) -->
+          <button
+            id="toggleBriefBtn"
+            type="button"
+            class="pill-btn is-active px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider"
+            title="Toggle prompt reference panel"
+          >
+            BRIEF
+          </button>
+
+          <!-- Typography Toggle: SANS vs MONO -->
+          <button
+            id="fontToggleBtn"
+            type="button"
+            class="pill-btn px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider"
+            title="Switch editor typeface"
+          >
+            SANS
+          </button>
+
+          <!-- 15-Minute Writing Sprint Timer Pill -->
+          <div class="pill-btn flex items-center overflow-hidden">
+            <button
+              id="sprintTimerBtn"
+              type="button"
+              class="px-3 py-1.5 text-[11px] font-mono tracking-wider flex items-center gap-1.5 hover:text-white transition-colors"
+              title="Click to start/pause 15m writing sprint"
+            >
+              <span id="sprintDot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+              <span id="sprintDisplay">15:00</span>
+            </button>
+            <button
+              id="sprintResetBtn"
+              type="button"
+              aria-label="Reset sprint timer"
+              title="Reset timer to 15:00"
+              class="pr-2.5 pl-1 py-1.5 text-slate-500 hover:text-slate-200 transition-colors"
+            >
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Auto-Save Status Pill -->
+          <div
+            class="px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06] text-[11px] font-mono uppercase tracking-wider flex items-center gap-1.5 text-slate-300"
+          >
+            <span id="saveStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span id="saveStatusText">SAVED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Studio Workspace Grid -->
+      <div id="studioWorkspaceGrid" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        
+        <!-- Collapsible Prompt Brief Reference Column -->
+        <aside id="studioBriefPanel" class="lg:col-span-4 glass-surface rounded-3xl p-5 space-y-4 min-w-0">
+          <div class="flex items-center justify-between gap-2">
+            <span
+              id="studioPromptIndex"
+              class="font-mono text-xs font-semibold px-2.5 py-1 rounded-full accent-bg-soft accent-text border accent-border"
+            >
+              #01
+            </span>
+            <span
+              id="studioPromptGenre"
+              class="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/[0.04] text-slate-300 border border-white/[0.07]"
+            >
+              TECHNO-THRILLER
+            </span>
+          </div>
+
+          <h2 id="studioPromptTitle" class="text-lg font-bold text-slate-100 leading-snug">
+            The Ghost in the Localhost
+          </h2>
+
+          <div class="space-y-1.5">
+            <span class="block font-mono text-[10px] uppercase tracking-widest text-slate-500">
+              PREMISE
+            </span>
+            <p id="studioPromptPremise" class="text-[13px] leading-relaxed text-slate-300">
+              <!-- Premise -->
+            </p>
+          </div>
+
+          <div class="neu-well rounded-2xl p-3.5 border-l-2 accent-border space-y-1.5">
+            <span class="block font-mono text-[10px] uppercase tracking-widest accent-text">
+              HOOK
+            </span>
+            <p id="studioPromptHook" class="text-[13px] leading-relaxed text-slate-200">
+              <!-- Hook -->
+            </p>
+          </div>
+        </aside>
+
+        <!-- Main Writing Canvas Column -->
+        <section id="studioEditorPanel" class="lg:col-span-8 glass-surface rounded-3xl p-5 sm:p-6 flex flex-col min-w-0">
+          
+          <!-- Editable Custom Draft Title -->
+          <div class="pb-3.5 mb-4 border-b border-white/[0.07]">
+            <input
+              id="draftTitleInput"
+              type="text"
+              placeholder="Untitled Draft..."
+              aria-label="Draft title"
+              class="w-full bg-transparent text-lg sm:text-xl font-bold text-slate-100 placeholder-slate-600 focus:outline-none tracking-tight"
+            />
+          </div>
+
+          <!-- Expansive Auto-Saving Writing Textarea -->
+          <textarea
+            id="draftTextarea"
+            placeholder="Write..."
+            aria-label="Story draft editor"
+            class="w-full bg-transparent text-[15px] sm:text-base text-slate-100 placeholder-slate-600 leading-[1.8] resize-y min-h-[44vh] lg:min-h-[54vh] focus:outline-none font-sans"
+          ></textarea>
+
+          <!-- Bottom Telemetry & Export Bar -->
+          <div class="pt-4 mt-4 border-t border-white/[0.07] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            
+            <!-- Telemetry Metrics -->
+            <div class="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-wider text-slate-400">
+              <span id="statWords" class="text-slate-200 font-medium">0 WORDS</span>
+              <span class="text-slate-600">·</span>
+              <span id="statChars">0 CHARS</span>
+              <span class="text-slate-600">·</span>
+              <span id="statReadTime">0M READ</span>
+            </div>
+
+            <!-- Export & Two-Step Clear Capsule Actions -->
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- Inline Two-Step Clear Confirmation -->
+              <div class="flex items-center gap-1.5">
+                <button
+                  id="clearDraftBtn"
+                  type="button"
+                  class="pill-btn px-3.5 py-1.5 text-[11px] font-mono uppercase tracking-wider text-rose-300 hover:text-rose-200"
+                >
+                  CLEAR
+                </button>
+                <button
+                  id="confirmClearBtn"
+                  type="button"
+                  class="hidden pill-btn px-3.5 py-1.5 text-[11px] font-mono uppercase tracking-wider !bg-rose-500/20 !border-rose-400/50 !text-rose-200 font-semibold"
+                >
+                  CONFIRM
+                </button>
+                <button
+                  id="cancelClearBtn"
+                  type="button"
+                  class="hidden pill-btn px-2.5 py-1.5 text-[11px] font-mono uppercase tracking-wider text-slate-400"
+                  title="Cancel"
+                >
+                  ×
+                </button>
+              </div>
+
+              <button
+                id="copyDraftBtn"
+                type="button"
+                class="pill-btn px-3.5 py-1.5 text-[11px] font-mono uppercase tracking-wider"
+              >
+                COPY DRAFT
+              </button>
+
+              <button
+                id="exportTxtBtn"
+                type="button"
+                class="pill-btn px-3.5 py-1.5 text-[11px] font-mono uppercase tracking-wider"
+              >
+                EXPORT .TXT
+              </button>
+
+              <button
+                id="exportMdBtn"
+                type="button"
+                class="pill-accent px-4 py-1.5 text-[11px] font-mono uppercase tracking-wider"
+              >
+                EXPORT .MD
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+  </main>
+
+
+  <footer class="relative z-10 border-t border-white/[0.06] py-5 mt-auto">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center sm:text-left">
+      <p class="text-xs text-slate-500 font-mono">
+        © 2026 Sanchar Koirala | All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+
+  <div
+    id="toastContainer"
+    aria-live="polite"
+    class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-xs w-[calc(100vw-2.5rem)] pointer-events-none"
+  ></div>
+
+
+  <script>
+    (function () {
+      'use strict';
+
+
+      const PROMPTS = [
+        {
+          index: '01',
+          title: 'The Ghost in the Localhost',
+          category: 'speculative',
+          genre: 'TECHNO-THRILLER',
+          premise: 'A Kathmandu developer builds a peer-to-peer streaming server and offline QR file-transfer network meant to stay invisible to big tech. During a late-night HLS test, an unauthorized \'Watch Party\' room spawns on his Firebase database—occupied by a single user streaming footage from a place that doesn\'t exist yet, authenticated with his private admin PIN.',
+          hook: 'Every time he kills the server executable or severs the Cloudflare tunnel, the stream adapts—mimicking his glassmorphism UI and rewriting its own source code to keep him watching.'
+        },
+        {
+          index: '02',
+          title: 'The 8085 Anomaly',
+          category: 'speculative',
+          genre: 'SCI-FI / MYSTERY',
+          premise: 'During a late-night assembly session on an aging 8085 microprocessor trainer kit, a programmer discovers a routine using standard MVI and ADD instructions returning values from memory addresses that don\'t physically exist on the board.',
+          hook: 'Mapping the hex outputs onto a grid reveals the hardware is acting as a low-level receiver—broadcasting machine-language coordinates across time pointing to an exact spot in Bhaktapur.'
+        },
+        {
+          index: '03',
+          title: 'Monsoons in the Machine',
+          category: 'speculative',
+          genre: 'MAGICAL REALISM',
+          premise: 'Obsessed with capturing the exact acoustics and physics of a Kathmandu monsoon, a digital artist spends months perfecting a particle rain simulator in Processing—tuning droplet velocity, splash physics, and synthesized thunder until it mirrors the storm outside.',
+          hook: 'One evening, the real sky over Bagmati Province begins syncing to his side-panel sliders—and he has to figure out what happens if he closes the program.'
+        },
+        {
+          index: '04',
+          title: 'The Last Tea Before Boarding',
+          category: 'slice',
+          genre: 'CONTEMPORARY DRAMA',
+          premise: 'Two people sit at a quiet corner table at a Kathmandu chiya spot watching evening traffic blur past. One has a packed suitcase waiting at home for a flight to Australia via Singapore; the other is staying behind to build a life out of code, half-finished hardware prototypes, and stubborn ambition.',
+          hook: 'Capture the unspoken bargaining over time zones, shorthand promises, and the realization that distance isn\'t measured in kilometers, but in the quiet rituals left behind.'
+        },
+        {
+          index: '05',
+          title: 'Paper Trails & Digital Ledgers',
+          category: 'slice',
+          genre: 'SATIRE / SLICE-OF-LIFE',
+          premise: 'A software builder who spends his days architecting sleek fintech apps, decentralized chat networks, and token economies finds himself completely defeated by an analog problem: verifying a residential building listing on a map and navigating local paperwork in Kathmandu.',
+          hook: 'Framed as a modern parallel to Dhumaketu’s \'The Letter\', contrasting zero-latency digital perfection with the slow, human absurdity of physical bureaucracy.'
+        },
+        {
+          index: '06',
+          title: 'The Great Momo-Driven Architecture',
+          category: 'slice',
+          genre: 'TECH COMEDY',
+          premise: 'A developer builds an enterprise-grade POS system with instant thermal receipt printing to handle peak-hour chaos at Kathmandu’s busiest momo joints, convincing his wife to help run a live Friday-rush beta test at a cramped local eatery.',
+          hook: 'The code handles 500 concurrent orders with zero lag, until an edge-case debate over whether jhol momos count as a \'beverage\' and a runaway thermal printer threaten total kitchen meltdown.'
+        },
+        {
+          index: '07',
+          title: 'Two Degrees of Separation on a Pathao Ride',
+          category: 'slice',
+          genre: 'ROM-COM',
+          premise: 'After evening chiya near Shantinagar, a couple books two separate Pathao rides during a sudden drizzle—only for classic GPS pin drift between narrow gallis to swap them onto each other\'s bikes heading toward Bhaktapur and Lalitpur.',
+          hook: 'Told in alternating perspectives as they coordinate a mid-city rendezvous over patchy data, turning Ring Road traffic into an improvised, rain-soaked date fueled by fried chicken and stubbornness.'
+        },
+        {
+          index: '08',
+          title: 'The \'Zero Effort\' Romance Algorithm',
+          category: 'slice',
+          genre: 'DOMESTIC HUMOR',
+          premise: 'Known for building hyper-optimized web utilities promising \'maximum dopamine,\' a 26-year-old programmer secretly builds a private, single-file web app—complete with dark glassmorphism and capsule buttons—to win small domestic debates, pick dinner spots, and send terrible jokes to his wife.',
+          hook: 'His \'de-slopped\' interface seems foolproof until she discovers the hidden admin panel, hijacks the Firebase backend, and rigs the random wheel to always land on her favorite cafe.'
+        },
+        {
+          index: '09',
+          title: 'Monopoly Junior & The Syndicate',
+          category: 'slice',
+          genre: 'SLICE-OF-LIFE',
+          premise: 'A strategist who regularly orchestrates complex multiplayer raids in Clash of Clans and designs decentralized token economies sits down for a casual evening of Monopoly Junior at home.',
+          hook: 'Written like a high-stakes Wall Street thriller, where fintech logic collapses within twenty minutes against an opponent who ignores probability curves to aggressively corner every ice cream parlor on the board.'
+        },
+        {
+          index: '10',
+          title: 'Debugging at Kaushi Chiya',
+          category: 'slice',
+          genre: 'GROUNDED ROMANCE',
+          premise: 'A quiet afternoon on a rooftop tea spot overlooking the Kathmandu Valley. One half of a couple frantically debugs a stubborn CORS error before an evening deployment while the other quietly slides a fresh cup of masala chiya across the table.',
+          hook: 'A warm, grounded portrait of love in your mid-twenties—not cinematic grand gestures, but knowing the exact moment to close a laptop lid and remind someone the server will still be there after sunset.'
+        }
+      ];
+
+      /* ======================================================================
+         2. STORAGE & STATE MANAGEMENT
+         ====================================================================== */
+      const KEYS = {
+        DRAFTS: 'localhost_np_drafts_v1',
+        TITLES: 'localhost_np_titles_v1',
+        ACCENT: 'localhost_np_accent_v1',
+        RAIN: 'localhost_np_rain_v1',
+        FONT: 'localhost_np_font_v1'
+      };
+
+      const ACCENTS = ['cyan', 'amber', 'emerald', 'rose'];
+
+      const state = {
+        view: 'archive', // 'archive' | 'studio'
+        filter: 'all', // 'all' | 'speculative' | 'slice' | 'drafts'
+        search: '',
+        activeIndex: '01',
+        briefOpen: true,
+        fontMode: localStorage.getItem(KEYS.FONT) || 'sans', // 'sans' | 'mono'
+        accent: localStorage.getItem(KEYS.ACCENT) || 'cyan',
+        rainOn: loadJSON(KEYS.RAIN, true),
+        drafts: loadJSON(KEYS.DRAFTS, {}),
+        titles: loadJSON(KEYS.TITLES, {}),
+        clearTimeoutId: null,
+        sprint: {
+          duration: 15 * 60,
+          remaining: 15 * 60,
+          running: false,
+          intervalId: null
+        }
+      };
+
+      function loadJSON(key, fallback) {
+        try {
+          const val = localStorage.getItem(key);
+          return val !== null ? JSON.parse(val) : fallback;
+        } catch (err) {
+          return fallback;
+        }
+      }
+
+      function saveJSON(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (err) {
+          // Ignore storage quota issues gracefully
+        }
+      }
+
+      function escapeHTML(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function getWordCount(text) {
+        if (!text || !text.trim()) return 0;
+        return text.trim().split(/\s+/).length;
+      }
+
+      function hasSavedDraft(index) {
+        return getWordCount(state.drafts[index] || '') > 0;
+      }
+
+      /* ======================================================================
+         3. FLOATING GLASS TOAST SYSTEM
+         ====================================================================== */
+      const toastContainer = document.getElementById('toastContainer');
+
+      function showToast(label) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-in pointer-events-auto glass-surface rounded-full px-4 py-2.5 flex items-center justify-between gap-3 border accent-border';
+
+        toast.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-1.5 h-1.5 rounded-full accent-dot shrink-0"></span>
+            <span class="font-mono text-[11px] uppercase tracking-wider text-slate-100 truncate">${escapeHTML(label)}</span>
+          </div>
+          <button type="button" aria-label="Dismiss" class="text-slate-500 hover:text-slate-200 text-xs font-mono shrink-0">×</button>
+        `;
+
+        const dismiss = () => {
+          toast.classList.remove('toast-in');
+          toast.classList.add('toast-out');
+          setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+          }, 200);
+        };
+
+        toast.querySelector('button').addEventListener('click', dismiss);
+        toastContainer.appendChild(toast);
+
+        while (toastContainer.children.length > 3) {
+          toastContainer.removeChild(toastContainer.firstChild);
+        }
+
+        setTimeout(dismiss, 2600);
+      }
+
+      /* ======================================================================
+         4. CLIPBOARD HELPER (IFRAME SAFE)
+         ====================================================================== */
+      function copyToClipboard(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          // Fallback silent
+        }
+        document.body.removeChild(ta);
+      }
+
+      function formatPromptText(prompt) {
+        return [
+          `#${prompt.index} — ${prompt.title} [${prompt.genre}]`,
+          ``,
+          `PREMISE:`,
+          prompt.premise,
+          ``,
+          `HOOK:`,
+          prompt.hook
+        ].join('\n');
+      }
+
+      /* ======================================================================
+         5. ACCENT THEME CYCLER
+         ====================================================================== */
+      const themeCycleBtn = document.getElementById('themeCycleBtn');
+      const themeLabel = document.getElementById('themeLabel');
+
+      function applyAccent(accentName, notify = false) {
+        if (!ACCENTS.includes(accentName)) accentName = 'cyan';
+        state.accent = accentName;
+        localStorage.setItem(KEYS.ACCENT, accentName);
+
+        if (accentName === 'cyan') {
+          document.documentElement.removeAttribute('data-accent');
+        } else {
+          document.documentElement.setAttribute('data-accent', accentName);
+        }
+
+        themeLabel.textContent = accentName.toUpperCase();
+        if (notify) {
+          showToast(`ACCENT: ${accentName.toUpperCase()}`);
+        }
+      }
+
+      themeCycleBtn.addEventListener('click', () => {
+        const nextIdx = (ACCENTS.indexOf(state.accent) + 1) % ACCENTS.length;
+        applyAccent(ACCENTS[nextIdx], true);
+      });
+
+      /* ======================================================================
+         6. ARCHIVE GRID RENDERING & FILTERING
+         ====================================================================== */
+      const filterBar = document.getElementById('filterBar');
+      const promptGrid = document.getElementById('promptGrid');
+      const emptyState = document.getElementById('emptyState');
+      const archiveCountPill = document.getElementById('archiveCountPill');
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+      const searchShortcutHint = document.getElementById('searchShortcutHint');
+
+      function getFilteredPrompts() {
+        const q = state.search.trim().toLowerCase();
+
+        return PROMPTS.filter(p => {
+          if (state.filter === 'speculative' && p.category !== 'speculative') return false;
+          if (state.filter === 'slice' && p.category !== 'slice') return false;
+          if (state.filter === 'drafts' && !hasSavedDraft(p.index)) return false;
+
+          if (q) {
+            const blob = `${p.index} ${p.title} ${p.genre} ${p.premise} ${p.hook}`.toLowerCase();
+            return blob.includes(q);
+          }
+          return true;
+        });
+      }
+
+      function renderFilterBar() {
+        const specCount = PROMPTS.filter(p => p.category === 'speculative').length;
+        const sliceCount = PROMPTS.filter(p => p.category === 'slice').length;
+        const draftsCount = PROMPTS.filter(p => hasSavedDraft(p.index)).length;
+
+        const pills = [
+          { id: 'all', label: `ALL (${PROMPTS.length})` },
+          { id: 'speculative', label: `SPECULATIVE (${specCount})` },
+          { id: 'slice', label: `KATHMANDU & ROMANCE (${sliceCount})` },
+          { id: 'drafts', label: `DRAFTS (${draftsCount})` }
+        ];
+
+        filterBar.innerHTML = pills
+          .map(
+            pill => `
+            <button
+              type="button"
+              data-filter="${pill.id}"
+              class="pill-btn ${state.filter === pill.id ? 'is-active' : ''} px-3.5 py-1.5 text-[11px] font-mono uppercase tracking-wider"
+            >
+              ${escapeHTML(pill.label)}
+            </button>
+          `
+          )
+          .join('');
+
+        filterBar.querySelectorAll('[data-filter]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.filter = btn.getAttribute('data-filter');
+            renderArchive();
+          });
+        });
+      }
+
+      function renderPromptGrid() {
+        const list = getFilteredPrompts();
+        archiveCountPill.textContent = `${list.length} / ${PROMPTS.length}`;
+
+        if (list.length === 0) {
+          promptGrid.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+
+        promptGrid.innerHTML = list
+          .map(p => {
+            const drafted = hasSavedDraft(p.index);
+            const words = getWordCount(state.drafts[p.index] || '');
+
+            return `
+              <article
+                data-card-index="${p.index}"
+                class="glass-surface prompt-card rounded-3xl p-5 sm:p-6 flex flex-col justify-between cursor-pointer min-w-0 group"
+              >
+                <div class="min-w-0">
+                  <!-- Top Metadata Row -->
+                  <div class="flex items-center justify-between gap-2 mb-3.5">
+                    <div class="flex items-center gap-2 min-w-0 flex-wrap">
+                      <span class="font-mono text-xs font-semibold px-2.5 py-0.5 rounded-full accent-bg-soft accent-text border accent-border">
+                        #${p.index}
+                      </span>
+                      <span class="font-mono text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/[0.04] text-slate-400 border border-white/[0.07] truncate">
+                        ${escapeHTML(p.genre)}
+                      </span>
+                    </div>
+
+                    ${
+                      drafted
+                        ? `<span class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider accent-text shrink-0" title="${words} words saved">
+                            <span class="w-1.5 h-1.5 rounded-full accent-dot"></span>
+                            DRAFT · ${words}W
+                           </span>`
+                        : ''
+                    }
+                  </div>
+
+                  <!-- Prompt Title -->
+                  <h2 class="text-base sm:text-lg font-bold text-slate-100 group-hover:accent-text transition-colors mb-2.5 tracking-tight">
+                    ${escapeHTML(p.title)}
+                  </h2>
+
+                  <!-- Premise -->
+                  <p class="text-[13px] sm:text-sm text-slate-300 leading-relaxed mb-4">
+                    ${escapeHTML(p.premise)}
+                  </p>
+
+                  <!-- Hook Recessed Callout -->
+                  <div class="neu-well rounded-2xl p-3.5 border-l-2 accent-border mb-5">
+                    <span class="block font-mono text-[10px] uppercase tracking-widest accent-text mb-1">
+                      HOOK
+                    </span>
+                    <p class="text-xs sm:text-[13px] text-slate-200 leading-relaxed">
+                      ${escapeHTML(p.hook)}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Card Action Capsules -->
+                <div class="pt-3 border-t border-white/[0.06] flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    data-copy-index="${p.index}"
+                    class="pill-btn px-3.5 py-1.5 text-[11px] font-mono uppercase tracking-wider"
+                  >
+                    COPY
+                  </button>
+                  <button
+                    type="button"
+                    data-write-index="${p.index}"
+                    class="pill-accent px-4 py-1.5 text-[11px] font-mono uppercase tracking-wider"
+                  >
+                    ${drafted ? 'CONTINUE →' : 'WRITE →'}
+                  </button>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
+
+        // Card Interactions
+        promptGrid.querySelectorAll('[data-card-index]').forEach(card => {
+          card.addEventListener('click', () => {
+            openStudio(card.getAttribute('data-card-index'));
+          });
+        });
+
+        promptGrid.querySelectorAll('[data-write-index]').forEach(btn => {
+          btn.addEventListener('click', e => {
+            e.stopPropagation();
+            openStudio(btn.getAttribute('data-write-index'));
+          });
+        });
+
+        promptGrid.querySelectorAll('[data-copy-index]').forEach(btn => {
+          btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const idx = btn.getAttribute('data-copy-index');
+            const p = PROMPTS.find(item => item.index === idx);
+            if (!p) return;
+            copyToClipboard(formatPromptText(p));
+            showToast(`COPIED #${p.index}`);
+          });
+        });
+      }
+
+      function renderArchive() {
+        renderFilterBar();
+        renderPromptGrid();
+      }
+
+      searchInput.addEventListener('input', () => {
+        state.search = searchInput.value;
+        const hasVal = state.search.length > 0;
+        clearSearchBtn.classList.toggle('hidden', !hasVal);
+        searchShortcutHint.classList.toggle('hidden', hasVal);
+        renderPromptGrid();
+      });
+
+      clearSearchBtn.addEventListener('click', () => {
+        state.search = '';
+        searchInput.value = '';
+        clearSearchBtn.classList.add('hidden');
+        searchShortcutHint.classList.remove('hidden');
+        searchInput.focus();
+        renderPromptGrid();
+      });
+
+      document.getElementById('resetFilterBtn').addEventListener('click', () => {
+        state.filter = 'all';
+        state.search = '';
+        searchInput.value = '';
+        clearSearchBtn.classList.add('hidden');
+        searchShortcutHint.classList.remove('hidden');
+        renderArchive();
+      });
+
+      /* ======================================================================
+         7. DISTRACTION-FREE STORY STUDIO VIEW
+         ====================================================================== */
+      const archiveView = document.getElementById('archiveView');
+      const studioView = document.getElementById('studioView');
+      const studioBriefPanel = document.getElementById('studioBriefPanel');
+      const studioEditorPanel = document.getElementById('studioEditorPanel');
+      const toggleBriefBtn = document.getElementById('toggleBriefBtn');
+      const fontToggleBtn = document.getElementById('fontToggleBtn');
+
+      const studioPromptIndex = document.getElementById('studioPromptIndex');
+      const studioPromptGenre = document.getElementById('studioPromptGenre');
+      const studioPromptTitle = document.getElementById('studioPromptTitle');
+      const studioPromptPremise = document.getElementById('studioPromptPremise');
+      const studioPromptHook = document.getElementById('studioPromptHook');
+
+      const draftTitleInput = document.getElementById('draftTitleInput');
+      const draftTextarea = document.getElementById('draftTextarea');
+      const saveStatusDot = document.getElementById('saveStatusDot');
+      const saveStatusText = document.getElementById('saveStatusText');
+
+      const statWords = document.getElementById('statWords');
+      const statChars = document.getElementById('statChars');
+      const statReadTime = document.getElementById('statReadTime');
+
+      const clearDraftBtn = document.getElementById('clearDraftBtn');
+      const confirmClearBtn = document.getElementById('confirmClearBtn');
+      const cancelClearBtn = document.getElementById('cancelClearBtn');
+
+      function resetClearControls() {
+        if (state.clearTimeoutId) {
+          clearTimeout(state.clearTimeoutId);
+          state.clearTimeoutId = null;
+        }
+        clearDraftBtn.classList.remove('hidden');
+        confirmClearBtn.classList.add('hidden');
+        cancelClearBtn.classList.add('hidden');
+      }
+
+      function updateTelemetry(text) {
+        const words = getWordCount(text);
+        const chars = text.length;
+        const mins = words === 0 ? 0 : Math.max(1, Math.ceil(words / 225));
+        statWords.textContent = `${words} ${words === 1 ? 'WORD' : 'WORDS'}`;
+        statChars.textContent = `${chars.toLocaleString()} CHARS`;
+        statReadTime.textContent = `${mins}M READ`;
+      }
+
+      function applyEditorFont() {
+        if (state.fontMode === 'mono') {
+          draftTextarea.classList.remove('font-sans');
+          draftTextarea.classList.add('font-mono', 'text-[14px]', 'sm:text-[15px]');
+          fontToggleBtn.textContent = 'MONO';
+          fontToggleBtn.classList.add('is-active');
+        } else {
+          draftTextarea.classList.remove('font-mono', 'text-[14px]', 'sm:text-[15px]');
+          draftTextarea.classList.add('font-sans');
+          fontToggleBtn.textContent = 'SANS';
+          fontToggleBtn.classList.remove('is-active');
+        }
+      }
+
+      function syncBriefLayout() {
+        if (state.briefOpen) {
+          studioBriefPanel.classList.remove('hidden');
+          studioEditorPanel.classList.remove('lg:col-span-12', 'max-w-4xl', 'mx-auto', 'w-full');
+          studioEditorPanel.classList.add('lg:col-span-8');
+          toggleBriefBtn.classList.add('is-active');
+        } else {
+          studioBriefPanel.classList.add('hidden');
+          studioEditorPanel.classList.remove('lg:col-span-8');
+          studioEditorPanel.classList.add('lg:col-span-12', 'max-w-4xl', 'mx-auto', 'w-full');
+          toggleBriefBtn.classList.remove('is-active');
+        }
+      }
+
+      function loadPromptIntoStudio(index) {
+        const p = PROMPTS.find(item => item.index === index) || PROMPTS[0];
+        state.activeIndex = p.index;
+        resetClearControls();
+
+        studioPromptIndex.textContent = `#${p.index}`;
+        studioPromptGenre.textContent = p.genre;
+        studioPromptTitle.textContent = p.title;
+        studioPromptPremise.textContent = p.premise;
+        studioPromptHook.textContent = p.hook;
+
+        const savedCustomTitle = state.titles[p.index];
+        draftTitleInput.value = savedCustomTitle !== undefined ? savedCustomTitle : p.title;
+
+        const savedBody = state.drafts[p.index] || '';
+        draftTextarea.value = savedBody;
+        updateTelemetry(savedBody);
+
+        saveStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+        saveStatusText.textContent = 'SAVED';
+      }
+
+      function openStudio(index) {
+        loadPromptIntoStudio(index);
+        state.view = 'studio';
+        archiveView.classList.add('hidden');
+        studioView.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function closeStudio() {
+        resetClearControls();
+        state.view = 'archive';
+        studioView.classList.add('hidden');
+        archiveView.classList.remove('hidden');
+        renderArchive();
+      }
+
+      function cycleStudioPrompt(step) {
+        const currentIdx = PROMPTS.findIndex(p => p.index === state.activeIndex);
+        const nextIdx = (currentIdx + step + PROMPTS.length) % PROMPTS.length;
+        loadPromptIntoStudio(PROMPTS[nextIdx].index);
+      }
+
+      // Auto-save Title & Draft Textarea
+      let saveTimer = null;
+
+      function scheduleAutoSave() {
+        saveStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400';
+        saveStatusText.textContent = 'SAVING';
+
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          const idx = state.activeIndex;
+          const p = PROMPTS.find(item => item.index === idx);
+          const bodyVal = draftTextarea.value;
+          const titleVal = draftTitleInput.value.trim();
+
+          if (bodyVal.trim().length > 0) {
+            state.drafts[idx] = bodyVal;
+          } else {
+            delete state.drafts[idx];
+          }
+          saveJSON(KEYS.DRAFTS, state.drafts);
+
+          if (p && titleVal && titleVal !== p.title) {
+            state.titles[idx] = titleVal;
+          } else {
+            delete state.titles[idx];
+          }
+          saveJSON(KEYS.TITLES, state.titles);
+
+          saveStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+          saveStatusText.textContent = 'SAVED';
+        }, 220);
+      }
+
+      draftTitleInput.addEventListener('input', scheduleAutoSave);
+
+      draftTextarea.addEventListener('input', () => {
+        updateTelemetry(draftTextarea.value);
+        scheduleAutoSave();
+      });
+
+      // Tab Key Indentation inside Textarea
+      draftTextarea.addEventListener('keydown', e => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = draftTextarea.selectionStart;
+          const end = draftTextarea.selectionEnd;
+          if (typeof draftTextarea.setRangeText === 'function') {
+            draftTextarea.setRangeText('  ', start, end, 'end');
+          } else {
+            draftTextarea.value =
+              draftTextarea.value.substring(0, start) + '  ' + draftTextarea.value.substring(end);
+            draftTextarea.selectionStart = draftTextarea.selectionEnd = start + 2;
+          }
+          updateTelemetry(draftTextarea.value);
+          scheduleAutoSave();
+        }
+      });
+
+      // Studio Controls Listeners
+      document.getElementById('brandHomeBtn').addEventListener('click', () => {
+        if (state.view === 'studio') closeStudio();
+      });
+
+      document.getElementById('backToArchiveBtn').addEventListener('click', closeStudio);
+      document.getElementById('prevPromptBtn').addEventListener('click', () => cycleStudioPrompt(-1));
+      document.getElementById('nextPromptBtn').addEventListener('click', () => cycleStudioPrompt(1));
+
+      toggleBriefBtn.addEventListener('click', () => {
+        state.briefOpen = !state.briefOpen;
+        syncBriefLayout();
+      });
+
+      fontToggleBtn.addEventListener('click', () => {
+        state.fontMode = state.fontMode === 'sans' ? 'mono' : 'sans';
+        localStorage.setItem(KEYS.FONT, state.fontMode);
+        applyEditorFont();
+      });
+
+      document.getElementById('shuffleBtn').addEventListener('click', () => {
+        const candidates = PROMPTS.filter(p => !(state.view === 'studio' && p.index === state.activeIndex));
+        const picked = candidates[Math.floor(Math.random() * candidates.length)];
+        openStudio(picked.index);
+        showToast(`LOADED #${picked.index}`);
+      });
+
+      // Copy & Export Actions
+      function getCurrentDraftDocument() {
+        const p = PROMPTS.find(item => item.index === state.activeIndex);
+        const title = draftTitleInput.value.trim() || p.title;
+        const body = draftTextarea.value.trim();
+        return { prompt: p, title, body };
+      }
+
+      document.getElementById('copyDraftBtn').addEventListener('click', () => {
+        const { title, body } = getCurrentDraftDocument();
+        if (!body) {
+          showToast('DRAFT EMPTY');
+          return;
+        }
+        copyToClipboard(`${title}\n\n${body}`);
+        showToast('DRAFT COPIED');
+      });
+
+      function triggerFileDownload(filename, content, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById('exportMdBtn').addEventListener('click', () => {
+        const { prompt, title, body } = getCurrentDraftDocument();
+        const slug = title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') || `prompt-${prompt.index}`;
+
+        const md = [
+          `# ${title}`,
+          ``,
+          `> **#${prompt.index} · ${prompt.genre}**`,
+          `> **Premise:** ${prompt.premise}`,
+          `> **Hook:** ${prompt.hook}`,
+          ``,
+          `---`,
+          ``,
+          body
+        ].join('\n');
+
+        triggerFileDownload(`${prompt.index}-${slug}.md`, md, 'text/markdown;charset=utf-8');
+        showToast(`EXPORTED ${prompt.index}-${slug}.MD`);
+      });
+
+      document.getElementById('exportTxtBtn').addEventListener('click', () => {
+        const { prompt, title, body } = getCurrentDraftDocument();
+        const slug = title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') || `prompt-${prompt.index}`;
+
+        const txt = `${title.toUpperCase()}\n#${prompt.index} — ${prompt.genre}\n\n${body}`;
+        triggerFileDownload(`${prompt.index}-${slug}.txt`, txt, 'text/plain;charset=utf-8');
+        showToast(`EXPORTED ${prompt.index}-${slug}.TXT`);
+      });
+
+      // Inline Two-Step Clear Confirmation
+      clearDraftBtn.addEventListener('click', () => {
+        if (!draftTextarea.value.trim()) {
+          showToast('NOTHING TO CLEAR');
+          return;
+        }
+        clearDraftBtn.classList.add('hidden');
+        confirmClearBtn.classList.remove('hidden');
+        cancelClearBtn.classList.remove('hidden');
+
+        state.clearTimeoutId = setTimeout(resetClearControls, 4000);
+      });
+
+      cancelClearBtn.addEventListener('click', resetClearControls);
+
+      confirmClearBtn.addEventListener('click', () => {
+        const idx = state.activeIndex;
+        const p = PROMPTS.find(item => item.index === idx);
+        draftTextarea.value = '';
+        if (p) draftTitleInput.value = p.title;
+        delete state.drafts[idx];
+        delete state.titles[idx];
+        saveJSON(KEYS.DRAFTS, state.drafts);
+        saveJSON(KEYS.TITLES, state.titles);
+        updateTelemetry('');
+        saveStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-slate-500';
+        saveStatusText.textContent = 'CLEARED';
+        resetClearControls();
+        showToast(`CLEARED #${idx}`);
+      });
+
+      /* ======================================================================
+         8. 15-MINUTE SPRINT TIMER
+         ====================================================================== */
+      const sprintTimerBtn = document.getElementById('sprintTimerBtn');
+      const sprintResetBtn = document.getElementById('sprintResetBtn');
+      const sprintDisplay = document.getElementById('sprintDisplay');
+      const sprintDot = document.getElementById('sprintDot');
+
+      function formatSeconds(sec) {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+
+      function renderSprintTimer() {
+        sprintDisplay.textContent = formatSeconds(state.sprint.remaining);
+        if (state.sprint.running) {
+          sprintDot.className = 'w-1.5 h-1.5 rounded-full accent-dot animate-pulse';
+          sprintTimerBtn.classList.add('accent-text');
+        } else {
+          sprintDot.className = 'w-1.5 h-1.5 rounded-full bg-slate-500';
+          sprintTimerBtn.classList.remove('accent-text');
+        }
+      }
+
+      function pauseSprint() {
+        state.sprint.running = false;
+        if (state.sprint.intervalId) {
+          clearInterval(state.sprint.intervalId);
+          state.sprint.intervalId = null;
+        }
+        renderSprintTimer();
+      }
+
+      function resetSprint() {
+        pauseSprint();
+        state.sprint.remaining = state.sprint.duration;
+        renderSprintTimer();
+      }
+
+      sprintTimerBtn.addEventListener('click', () => {
+        if (state.sprint.running) {
+          pauseSprint();
+        } else {
+          if (state.sprint.remaining <= 0) {
+            state.sprint.remaining = state.sprint.duration;
+          }
+          state.sprint.running = true;
+          renderSprintTimer();
+          state.sprint.intervalId = setInterval(() => {
+            state.sprint.remaining -= 1;
+            if (state.sprint.remaining <= 0) {
+              state.sprint.remaining = 0;
+              pauseSprint();
+              showToast('SPRINT COMPLETE · 15:00');
+            } else {
+              renderSprintTimer();
+            }
+          }, 1000);
+        }
+      });
+
+      sprintResetBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        resetSprint();
+        showToast('TIMER RESET · 15:00');
+      });
+
+      /* ======================================================================
+         9. KEYBOARD SHORTCUTS ('/', 'Cmd/Ctrl+K', 'Esc')
+         ====================================================================== */
+      document.addEventListener('keydown', e => {
+        const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        const isTyping = tag === 'input' || tag === 'textarea';
+
+        // '/' or Cmd/Ctrl+K focuses search in Archive view
+        if (
+          state.view === 'archive' &&
+          ((e.key === '/' && !isTyping) || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'))
+        ) {
+          e.preventDefault();
+          searchInput.focus();
+          return;
+        }
+
+        // Escape handling
+        if (e.key === 'Escape') {
+          if (!confirmClearBtn.classList.contains('hidden')) {
+            resetClearControls();
+            return;
+          }
+          if (state.view === 'archive' && document.activeElement === searchInput) {
+            if (state.search) {
+              state.search = '';
+              searchInput.value = '';
+              clearSearchBtn.classList.add('hidden');
+              searchShortcutHint.classList.remove('hidden');
+              renderPromptGrid();
+            }
+            searchInput.blur();
+            return;
+          }
+          if (state.view === 'studio') {
+            closeStudio();
+          }
+        }
+      });
+
+      /* ======================================================================
+         10. 60FPS HTML5 CANVAS KATHMANDU MONSOON RAIN SIMULATION
+         ====================================================================== */
+      const rainCanvas = document.getElementById('rainCanvas');
+      const ctx = rainCanvas.getContext('2d');
+      const rainToggleBtn = document.getElementById('rainToggleBtn');
+      const rainStatusDot = document.getElementById('rainStatusDot');
+
+      let cw = 0;
+      let ch = 0;
+      let drops = [];
+      let ripples = [];
+      let rafId = null;
+
+      function getAccentRGB() {
+        const raw = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
+        return raw || '56, 189, 248';
+      }
+
+      function resizeRainCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        cw = window.innerWidth;
+        ch = window.innerHeight;
+        rainCanvas.width = cw * dpr;
+        rainCanvas.height = ch * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const density = Math.min(110, Math.max(42, Math.floor(cw / 14)));
+        if (drops.length !== density) {
+          drops = Array.from({ length: density }, () => spawnDrop(true));
+        }
+      }
+
+      function spawnDrop(initial = false) {
+        const z = Math.random();
+        return {
+          x: Math.random() * (cw + 120) - 60,
+          y: initial ? Math.random() * ch : -25 - Math.random() * 90,
+          len: 10 + z * 16,
+          vy: 4.8 + z * 6.2,
+          vx: -0.75 - z * 0.75,
+          alpha: 0.06 + z * 0.16,
+          w: 0.6 + z * 0.7
+        };
+      }
+
+      function spawnRipple(x, y) {
+        if (ripples.length > 28) return;
+        ripples.push({
+          x,
+          y,
+          r: 1,
+          maxR: 5 + Math.random() * 5,
+          alpha: 0.2
+        });
+      }
+
+      function tickRain() {
+        if (!state.rainOn) return;
+
+        ctx.clearRect(0, 0, cw, ch);
+        const rgb = getAccentRGB();
+
+        for (let i = 0; i < drops.length; i++) {
+          const d = drops[i];
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(${rgb}, ${d.alpha.toFixed(3)})`;
+          ctx.lineWidth = d.w;
+          ctx.lineCap = 'round';
+          ctx.moveTo(d.x, d.y);
+          ctx.lineTo(d.x + d.vx * 1.5, d.y + d.len);
+          ctx.stroke();
+
+          d.x += d.vx;
+          d.y += d.vy;
+
+          if (d.y > ch - 4) {
+            if (Math.random() < 0.24) {
+              spawnRipple(d.x, ch - 3);
+            }
+            drops[i] = spawnDrop(false);
+          }
+        }
+
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const rp = ripples[i];
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(${rgb}, ${rp.alpha.toFixed(3)})`;
+          ctx.lineWidth = 0.75;
+          ctx.ellipse(rp.x, rp.y, rp.r * 1.9, rp.r * 0.42, 0, 0, Math.PI * 2);
+          ctx.stroke();
+
+          rp.r += 0.34;
+          rp.alpha -= 0.011;
+
+          if (rp.alpha <= 0 || rp.r >= rp.maxR) {
+            ripples.splice(i, 1);
+          }
+        }
+
+        rafId = requestAnimationFrame(tickRain);
+      }
+
+      function syncRain(notify = false) {
+        saveJSON(KEYS.RAIN, state.rainOn);
+        if (state.rainOn) {
+          rainCanvas.style.opacity = '1';
+          rainToggleBtn.classList.add('is-active');
+          rainStatusDot.className = 'w-1.5 h-1.5 rounded-full accent-dot';
+          if (!rafId) tickRain();
+          if (notify) showToast('RAIN: ON');
+        } else {
+          rainCanvas.style.opacity = '0';
+          rainToggleBtn.classList.remove('is-active');
+          rainStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-slate-600';
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+          }
+          ctx.clearRect(0, 0, cw, ch);
+          if (notify) showToast('RAIN: OFF');
+        }
+      }
+
+      rainToggleBtn.addEventListener('click', () => {
+        state.rainOn = !state.rainOn;
+        syncRain(true);
+      });
+
+      window.addEventListener('resize', resizeRainCanvas);
+
+      /* ======================================================================
+         11. BOOT SEQUENCE ON WINDOW LOAD
+         ====================================================================== */
+      window.addEventListener('load', () => {
+        applyAccent(state.accent, false);
+        applyEditorFont();
+        renderSprintTimer();
+        renderArchive();
+        resizeRainCanvas();
+        syncRain(false);
+      });
+    })();
+  </script>
+</body>
+</html>
